@@ -1,12 +1,12 @@
 # Dockerfile for a simple Nginx stream replicator
 
 # Separate build stage to keep build dependencies out of our final image
-ARG ALPINE_VERSION=alpine:3.8
+ARG ALPINE_VERSION=alpine:3.12
 FROM ${ALPINE_VERSION}
 
 # Software versions to build
-ARG NGINX_VERSION=nginx-1.15.8
-ARG NGINX_RTMP_MODULE_VERSION=6f5487ada9848a66cc7a3ed375e404fc95cc5302
+ARG NGINX_VERSION=nginx-1.18.0
+ARG NGINX_RTMP_MODULE_VERSION=afd350e0d8b7820d7d2cfc3fa748217153265ce6
 
 # Install buildtime dependencies
 # Note: We build against LibreSSL instead of OpenSSL, because LibreSSL is already included in Alpine
@@ -17,7 +17,7 @@ RUN apk --no-cache add build-base libressl-dev
 RUN mkdir -p /build && \
     wget -O - https://nginx.org/download/${NGINX_VERSION}.tar.gz | tar -zxC /build -f - && \
     mv /build/${NGINX_VERSION} /build/nginx && \
-    wget -O - https://github.com/DvdGiessen/nginx-rtmp-module/archive/${NGINX_RTMP_MODULE_VERSION}.tar.gz | tar -zxC /build -f - && \
+    wget -O - https://github.com/arut/nginx-rtmp-module/archive/${NGINX_RTMP_MODULE_VERSION}.tar.gz | tar -zxC /build -f - && \
     mv /build/nginx-rtmp-module-${NGINX_RTMP_MODULE_VERSION} /build/nginx-rtmp-module
 
 # Build a minimal version of nginx
