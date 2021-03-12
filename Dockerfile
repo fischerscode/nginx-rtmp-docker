@@ -113,7 +113,8 @@ CMD []
 
 # Copy files from build stage
 COPY --from=0 /build/nginx/objs/nginx /usr/local/sbin/nginx
-RUN chmod 550 /usr/local/sbin/nginx
+COPY --from=0 /lib/libssl.so.48 /lib/libssl.so.48
+COPY --from=0 /lib/libcrypto.so.46 /lib/libcrypto.so.46
 
 # Set up config file
 COPY nginx.conf /etc/nginx/nginx.conf
