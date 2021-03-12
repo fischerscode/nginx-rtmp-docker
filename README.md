@@ -1,13 +1,13 @@
 # nginx-rtmp-docker
 **Dockerfile for building lightweight nginx + rtmp module for replicating streams**
 
-![docker pulls](https://img.shields.io/docker/pulls/dvdgiessen/nginx-rtmp-docker.svg)
-![docker image size](https://img.shields.io/microbadger/image-size/dvdgiessen/nginx-rtmp-docker.svg)
+![docker pulls](https://img.shields.io/docker/pulls/maaeps/nginx-rtmp.svg)
+![docker image size](https://img.shields.io/microbadger/image-size/maaeps/nginx-rtmp.svg)
 
 ## Usage
 ### How to run the server
 ```sh
-docker run -dp 1935:1935 dvdgiessen/nginx-rtmp-docker
+docker run -dp 1935:1935 maaeps/nginx-rtmp
 ```
 
 ### How to stream to the server
@@ -28,4 +28,4 @@ Using VLC:
  * Click Play.
 
 ## More info
-Docker Hub: https://hub.docker.com/r/dvdgiessen/nginx-rtmp-docker/
+Docker Hub: https://hub.docker.com/r/maaeps/nginx-rtmp/
