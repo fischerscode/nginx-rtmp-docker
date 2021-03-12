@@ -86,6 +86,9 @@ RUN cd /build/nginx && \
 # Final image stage
 FROM ${ALPINE_VERSION}
 
+# install ffmpeg
+RUN apk add ffmpeg
+
 # Set up group and user
 RUN addgroup -S nginx && \
     adduser -s /sbin/nologin -G nginx -S -D -H nginx
