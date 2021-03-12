@@ -1,8 +1,7 @@
 # nginx-rtmp-docker
 **Dockerfile for building lightweight nginx + rtmp module for replicating streams**
 
-![docker pulls](https://img.shields.io/docker/pulls/maaeps/nginx-rtmp.svg)
-![docker image size](https://img.shields.io/microbadger/image-size/maaeps/nginx-rtmp.svg)
+[![docker pulls](https://img.shields.io/docker/pulls/maaeps/nginx-rtmp.svg)](https://registry.hub.docker.com/r/maaeps/nginx-rtmp)
 
 ## Usage
 ### How to run the server
