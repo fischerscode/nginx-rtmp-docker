@@ -2,7 +2,8 @@
 
 # Separate build stage to keep build dependencies out of our final image
 ARG ALPINE_VERSION=alpine:3.12
-FROM ${ALPINE_VERSION}
+
+FROM ${ALPINE_VERSION} AS nginx
 
 # Software versions to build
 ARG NGINX_VERSION=nginx-1.18.0
@@ -83,11 +84,84 @@ RUN cd /build/nginx && \
         --add-module=/build/nginx-rtmp-module && \
     make -j $(getconf _NPROCESSORS_ONLN)
 
+# inspired by https://github.com/alfg/docker-ffmpeg
+FROM ${ALPINE_VERSION} AS ffmpeg
+
+ARG FFMPEG_VERSION=4.3.2
+
+# FFmpeg build dependencies.
+RUN apk add --update \
+  build-base \
+  coreutils \
+  freetype-dev \
+  gcc \
+  lame-dev \
+  libogg-dev \
+  libass \
+  libass-dev \
+  libvpx-dev \
+  libvorbis-dev \
+  libwebp-dev \
+  libtheora-dev \
+  opus-dev \
+  openssl \
+  openssl-dev \
+  pkgconf \
+  pkgconfig \
+  rtmpdump-dev \
+  wget \
+  x264-dev \
+  x265-dev \
+  yasm
+
+# Get fdk-aac from community.
+RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
+  apk add --update fdk-aac-dev
+
+# Get rav1e from testing.
+RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
+  apk add --update rav1e-dev
+
+# Get ffmpeg source.
+RUN cd /tmp/ && \
+  wget https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz && \
+  tar zxf ffmpeg-${FFMPEG_VERSION}.tar.gz && rm ffmpeg-${FFMPEG_VERSION}.tar.gz
+
+# Compile ffmpeg.
+RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
+  ./configure \
+  --enable-version3 \
+  --enable-gpl \
+  --enable-nonfree \
+#  --enable-small \
+#  --enable-libmp3lame \
+  --enable-libx264 \
+#  --enable-libx265 \
+#  --enable-libvpx \
+#  --enable-libtheora \
+#  --enable-libvorbis \
+#  --enable-libopus \
+  --enable-libfdk-aac \
+#  --enable-libass \
+#  --enable-libwebp \
+  --enable-librtmp \
+#  --enable-librav1e \
+#  --enable-postproc \
+#  --enable-avresample \
+#  --enable-libfreetype \
+#  --enable-openssl \
+#  --disable-debug \
+  --disable-doc \
+  --disable-ffplay \
+  --extra-cflags="-I/opt/ffmpeg/include" \
+  --extra-ldflags="-L/opt/ffmpeg/lib" \
+#  --extra-libs="-lpthread -lm" \
+  --prefix="/opt/ffmpeg" && \
+  make && make install
+
+
 # Final image stage
 FROM ${ALPINE_VERSION}
-
-# install ffmpeg
-RUN apk add ffmpeg
 
 # Set up group and user
 RUN addgroup -S nginx && \
@@ -112,9 +186,25 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD []
 
 # Copy files from build stage
-COPY --from=0 /build/nginx/objs/nginx /usr/local/sbin/nginx
-COPY --from=0 /lib/libssl.so.48 /lib/libssl.so.48
-COPY --from=0 /lib/libcrypto.so.46 /lib/libcrypto.so.46
+COPY --from=nginx /build/nginx/objs/nginx /usr/local/sbin/nginx
+COPY --from=nginx /lib/libssl.so.48 /lib/libssl.so.48
+COPY --from=nginx /lib/libcrypto.so.46 /lib/libcrypto.so.46
+
+COPY --from=ffmpeg /opt/ffmpeg /opt/ffmpeg
+COPY --from=ffmpeg /usr/lib/libfdk-aac.so.2 /usr/lib/libfdk-aac.so.2
+COPY --from=ffmpeg /usr/lib/librtmp.so.1 /usr/lib/librtmp.so.1
+COPY --from=ffmpeg /usr/lib/libx264.so.157 /usr/lib/libx264.so.157
+COPY --from=ffmpeg /usr/lib/libx264.so /usr/lib/libx264.so
+COPY --from=ffmpeg /usr/lib/libgnutls.so.30 /usr/lib/libgnutls.so.30
+COPY --from=ffmpeg /usr/lib/libhogweed.so.5 /usr/lib/libhogweed.so.5
+COPY --from=ffmpeg /usr/lib/libnettle.so.7 /usr/lib/libnettle.so.7
+COPY --from=ffmpeg /usr/lib/libgmp.so.10 /usr/lib/libgmp.so.10
+COPY --from=ffmpeg /usr/lib/libp11-kit.so.0 /usr/lib/libp11-kit.so.0
+COPY --from=ffmpeg /usr/lib/libunistring.so.2 /usr/lib/libunistring.so.2
+COPY --from=ffmpeg /usr/lib/libtasn1.so.6 /usr/lib/libtasn1.so.6
+COPY --from=ffmpeg /usr/lib/libffi.so.7 /usr/lib/libffi.so.7
+
+ENV PATH=/opt/ffmpeg/bin:$PATH
 
 # Set up config file
 COPY nginx.conf /etc/nginx/nginx.conf
