@@ -150,7 +150,7 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
 #  --enable-avresample \
 #  --enable-libfreetype \
 #  --enable-openssl \
-#  --disable-debug \
+  --disable-debug \
   --disable-doc \
   --disable-ffplay \
   --extra-cflags="-I/opt/ffmpeg/include" \
@@ -164,8 +164,8 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
 FROM ${ALPINE_VERSION}
 
 # Set up group and user
-RUN addgroup -S nginx && \
-    adduser -s /sbin/nologin -G nginx -S -D -H nginx
+RUN addgroup -S nginx --gid 101 && \
+    adduser -s /sbin/nologin -G nginx -S -D -H nginx --uid 101
 
 # Set up directories
 RUN mkdir -p /etc/nginx /var/log/nginx /var/www && \
